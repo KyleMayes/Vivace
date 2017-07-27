@@ -16,6 +16,7 @@ endif
 
 headers = [include_directories('headers')]
 sources = [
+    'sources/utility.cpp',
 ]
 
 libraries = [static_library('vce', sources, include_directories : headers)]
