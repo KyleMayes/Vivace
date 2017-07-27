@@ -45,3 +45,19 @@ static_assert(HasFooV<Ignore(int, float)>);
 static_assert(HasFooV<int(int, float)>);
 static_assert(!HasFooV<float(int, float)>);
 static_assert(!HasBarV<Ignore(int, float)>);
+
+struct FunctionA { int baz(int a, float b); };
+struct FunctionB { static int baz(int a, float b); };
+
+VCE_HAS_MEMBER_FUNCTION(HasBaz, baz);
+VCE_HAS_MEMBER_FUNCTION(HasQux, qux);
+
+static_assert(HasBazV<FunctionA, Ignore(int, float)>);
+static_assert(HasBazV<FunctionA, int(int, float)>);
+static_assert(!HasBazV<FunctionA, float(int, float)>);
+static_assert(!HasQuxV<FunctionA, Ignore(int, float)>);
+
+static_assert(HasBazV<FunctionB, Ignore(int, float)>);
+static_assert(HasBazV<FunctionB, int(int, float)>);
+static_assert(!HasBazV<FunctionB, float(int, float)>);
+static_assert(!HasQuxV<FunctionB, Ignore(int, float)>);

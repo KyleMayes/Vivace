@@ -72,6 +72,31 @@ struct Ignore { };
     template <class F> \
     static constexpr bool TRAIT##V = TRAIT<F>::value
 
+/// Defines a type trait which indicates whether a type has the supplied member function.
+#define VCE_HAS_MEMBER_FUNCTION(TRAIT, FUNCTION) \
+    template <class T, class F> \
+    class TRAIT; \
+    template <class T, class... N> \
+    class TRAIT<T, ::vce::Ignore(N...)> { \
+    protected: \
+        struct No { }; \
+        template <class U, class... O> \
+        static auto test(int) -> decltype(std::declval<U>().FUNCTION(std::declval<O>()...)); \
+        template <class U, class... O> \
+        static auto test(bool) -> No; \
+        using Result = decltype(test<T, N...>(0)); \
+    public: \
+        static constexpr bool value = !std::is_same_v<Result, No>; \
+    }; \
+    template <class T, class R, class... N> \
+    class TRAIT<T, R(N...)> : private TRAIT<T, ::vce::Ignore(N...)> { \
+        using base = TRAIT<T, ::vce::Ignore(N...)>; \
+    public: \
+        static constexpr bool value = std::is_same_v<typename base::Result, R>; \
+    }; \
+    template <class T, class F> \
+    static constexpr bool TRAIT##V = TRAIT<T, F>::value
+
 }
 
 #endif
