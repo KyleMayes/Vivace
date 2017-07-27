@@ -16,6 +16,19 @@
 
 namespace vce {
 
+std::ostream& operator<<(std::ostream& stream, Ordering ordering) {
+    switch (ordering) {
+    case Ordering::Less:
+        return stream << "Less";
+    case Ordering::Greater:
+        return stream << "Greater";
+    case Ordering::Equal:
+        return stream << "Equal";
+    default:
+        return stream << "?";
+    }
+}
+
 bool operator==(Unit, Unit) {
     return true;
 }

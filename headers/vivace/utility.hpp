@@ -17,7 +17,34 @@
 
 #include <ostream>
 
+#include <vivace/meta.hpp>
+
 namespace vce {
+
+/// An ordering of two values.
+enum class Ordering : int {
+    Less = -1,
+    Greater = 1,
+    Equal = 0,
+};
+
+std::ostream& operator<<(std::ostream& stream, Ordering ordering);
+
+namespace detail { VCE_HAS_MEMBER_FUNCTION(HasCompare, compare); }
+
+/// Returns the ordering of the two supplied values.
+template <class T, class U>
+Ordering compare(const T& left, const U& right) {
+    if constexpr (detail::HasCompareV<const T&, Ordering(const U&)>) {
+        return left.compare(right);
+    } else if (left < right) {
+        return Ordering::Less;
+    } else if (right < left) {
+        return Ordering::Greater;
+    } else {
+        return Ordering::Equal;
+    }
+}
 
 /// The unit type.
 struct Unit { };
