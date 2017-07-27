@@ -20,6 +20,31 @@ ACCEL_TESTS
 
 using namespace vce;
 
+#include <map>
+#include <unordered_map>
+
+VCE_IS_RELOCATABLE(std::map<int, float>);
+VCE_IS_RELOCATABLE_TEMPLATE(std::unordered_map);
+
+struct RelocatableA { };
+struct RelocatableB { static constexpr bool RELOCATABLE = false; };
+struct RelocatableC { RelocatableC(RelocatableC&&) { } };
+struct RelocatableD { static constexpr bool RELOCATABLE = true; RelocatableD(RelocatableD&&) { } };
+
+TEST(Relocatable) {
+    static_assert(is_relocatable<int>());
+
+    static_assert(is_relocatable<std::map<int, float>>());
+    static_assert(!is_relocatable<std::map<float, int>>());
+    static_assert(is_relocatable<std::unordered_map<int, float>>());
+    static_assert(is_relocatable<std::unordered_map<float, int>>());
+
+    static_assert(is_relocatable<RelocatableA>());
+    static_assert(!is_relocatable<RelocatableB>());
+    static_assert(!is_relocatable<RelocatableC>());
+    static_assert(is_relocatable<RelocatableD>());
+}
+
 template <class T>
 struct Celsius {
     T value;

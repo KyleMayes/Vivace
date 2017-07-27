@@ -46,6 +46,46 @@ Ordering compare(const T& left, const U& right) {
     }
 }
 
+namespace detail {
+    VCE_HAS_FIELD(HasRelocatable, RELOCATABLE);
+
+    template <class T>
+    struct IsRelocatable {
+        static constexpr bool value = std::is_trivially_move_constructible_v<T>;
+    };
+
+    template <class T>
+    static constexpr bool IsRelocatableV = IsRelocatable<T>::value;
+}
+
+/// Defines the supplied type as being relocatable.
+#define VCE_IS_RELOCATABLE(...) \
+    namespace vce::detail { \
+        template <> \
+        struct IsRelocatable<__VA_ARGS__> { \
+            static constexpr bool value = true; \
+        }; \
+    }
+
+/// Defines the supplied template type as being relocatable.
+#define VCE_IS_RELOCATABLE_TEMPLATE(...) \
+    namespace vce::detail { \
+        template <class... N> \
+        struct IsRelocatable<__VA_ARGS__<N...>> { \
+            static constexpr bool value = true; \
+        }; \
+    }
+
+/// Returns whether the supplied type may be safely moved to another location in memory.
+template <class T>
+constexpr bool is_relocatable() {
+    if constexpr (detail::HasRelocatableV<T, bool>) {
+        return T::RELOCATABLE;
+    } else {
+        return detail::IsRelocatableV<T>;
+    }
+}
+
 /// The unit type.
 struct Unit { };
 
