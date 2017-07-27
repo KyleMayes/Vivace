@@ -47,6 +47,31 @@ struct Ignore { };
     template <class T, class R = ::vce::Ignore> \
     static constexpr bool TRAIT##V = TRAIT<T, R>::value
 
+/// Defines a type trait which indicates whether the supplied function exists.
+#define VCE_HAS_FUNCTION(TRAIT, FUNCTION) \
+    template <class F> \
+    class TRAIT; \
+    template <class... N> \
+    class TRAIT<::vce::Ignore(N...)> { \
+    protected: \
+        struct No { }; \
+        template <class... O> \
+        static auto test(int) -> decltype(FUNCTION(std::declval<O>()...)); \
+        template <class... O> \
+        static auto test(bool) -> No; \
+        using Result = decltype(test<N...>(0)); \
+    public: \
+        static constexpr bool value = !std::is_same_v<Result, No>; \
+    }; \
+    template <class R, class... N> \
+    class TRAIT<R(N...)> : private TRAIT<::vce::Ignore(N...)> { \
+        using base = TRAIT<::vce::Ignore(N...)>; \
+    public: \
+        static constexpr bool value = std::is_same_v<typename base::Result, R>; \
+    }; \
+    template <class F> \
+    static constexpr bool TRAIT##V = TRAIT<F>::value
+
 }
 
 #endif

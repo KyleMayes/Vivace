@@ -35,3 +35,13 @@ static_assert(HasIntegerV<FieldB>);
 static_assert(HasIntegerV<FieldB, int>);
 static_assert(!HasIntegerV<FieldB, float>);
 static_assert(!HasRealV<FieldB>);
+
+int foo(int a, float b);
+
+VCE_HAS_FUNCTION(HasFoo, foo);
+VCE_HAS_FUNCTION(HasBar, bar);
+
+static_assert(HasFooV<Ignore(int, float)>);
+static_assert(HasFooV<int(int, float)>);
+static_assert(!HasFooV<float(int, float)>);
+static_assert(!HasBarV<Ignore(int, float)>);
