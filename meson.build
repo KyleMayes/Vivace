@@ -48,6 +48,7 @@ endif
 # Tests
 
 tests = [
+    'meta',
 ]
 
 if get_option('tests')
