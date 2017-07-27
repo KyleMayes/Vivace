@@ -1,0 +1,4 @@
+option('benchmarks', type : 'boolean', value : false)
+option('tests', type : 'boolean', value : false)
+
+option('use_libcxx', type : 'boolean', value : false)

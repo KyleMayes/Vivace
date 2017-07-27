@@ -1,0 +1,3 @@
+[submodule "subprojects/accelerando"]
+	path = subprojects/accelerando
+	url = git@github.com:KyleMayes/accelerando.git
