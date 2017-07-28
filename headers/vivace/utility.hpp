@@ -86,6 +86,10 @@ constexpr bool is_relocatable() {
     }
 }
 
+/// A reference wrapper.
+template <class T>
+using Ref = std::reference_wrapper<T>;
+
 /// The unit type.
 struct Unit { };
 
