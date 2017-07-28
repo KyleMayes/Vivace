@@ -90,6 +90,10 @@ constexpr bool is_relocatable() {
 template <class T>
 using Ref = std::reference_wrapper<T>;
 
+/// A helper struct for SFINAE.
+template <bool ENABLE>
+using Sfinae = typename std::enable_if_t<ENABLE, int>;
+
 /// The unit type.
 struct Unit { };
 
