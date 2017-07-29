@@ -49,6 +49,7 @@ endif
 
 tests = [
     'meta',
+    'option',
     'utility',
 ]
 
