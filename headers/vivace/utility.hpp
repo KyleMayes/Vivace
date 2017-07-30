@@ -15,6 +15,7 @@
 #ifndef VCE_UTILITY_HPP
 #define VCE_UTILITY_HPP
 
+#include <limits>
 #include <ostream>
 
 #include <vivace/meta.hpp>
@@ -45,6 +46,10 @@ Ordering compare(const T& left, const U& right) {
         return Ordering::Equal;
     }
 }
+
+/// A collection of numeric limits.
+template <class T>
+using Limits = std::numeric_limits<T>;
 
 namespace detail {
     VCE_HAS_FIELD(HasRelocatable, RELOCATABLE);
