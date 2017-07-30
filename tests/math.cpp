@@ -32,6 +32,9 @@ TEST(Add) {
     ASSERT_EQ(saturating_add<int8_t>(-48, -48), -96);
     ASSERT_EQ(saturating_add<int8_t>(96, 96), 127);
     ASSERT_EQ(saturating_add<int8_t>(-96, -96), -128);
+
+    ASSERT_EQ(saturating_add<uint8_t>(96, 96), 192);
+    ASSERT_EQ(saturating_add<uint8_t>(192, 192), 255);
 }
 
 TEST(Sub) {
@@ -44,6 +47,9 @@ TEST(Sub) {
     ASSERT_EQ(saturating_sub<int8_t>(-48, 48), -96);
     ASSERT_EQ(saturating_sub<int8_t>(96, -96), 127);
     ASSERT_EQ(saturating_sub<int8_t>(-96, 96), -128);
+
+    ASSERT_EQ(saturating_sub<uint8_t>(192, 96), 96);
+    ASSERT_EQ(saturating_sub<uint8_t>(96, 192), 0);
 }
 
 TEST(Mul) {
@@ -64,6 +70,9 @@ TEST(Mul) {
     ASSERT_EQ(saturating_mul<int8_t>(-16, 16), -128);
     ASSERT_EQ(saturating_mul<int8_t>(16, -16), -128);
     ASSERT_EQ(saturating_mul<int8_t>(-16, -16), 127);
+
+    ASSERT_EQ(saturating_mul<uint8_t>(8, 8), 64);
+    ASSERT_EQ(saturating_mul<uint8_t>(16, 16), 255);
 }
 
 TEST(Div) {

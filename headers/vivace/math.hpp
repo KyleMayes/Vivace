@@ -78,7 +78,7 @@ template <class T>
 T saturating_sub(T left, T right) {
     if (auto difference = checked_sub(left, right); difference.is_some()) {
         return difference.unwrap();
-    } else if (left < 0) {
+    } else if (left < right) {
         return Limits<T>::min();
     } else {
         return Limits<T>::max();
