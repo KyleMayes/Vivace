@@ -237,6 +237,16 @@ TEST(AndThen) {
     ASSERT_THROW(a.and_then([](auto i) { return Option<UP>{std::move(i)}; }).unwrap());
 }
 
+TEST(Convert) {
+    Option<UP> a{make(322)};
+    ASSERT_EQ(*a.ok_or(make(17)).unwrap(), 322);
+    ASSERT_EQ(*a.ok_or(make(17)).unwrap_err(), 17);
+
+    Option<UP> b{make(322)};
+    ASSERT_EQ(*b.ok_or_else([] { return make(17); }).unwrap(), 322);
+    ASSERT_EQ(*b.ok_or_else([] { return make(17); }).unwrap_err(), 17);
+}
+
 TEST(Compare) {
     ASSERT_EQ(Option<int>{}, Option<float>{});
     ASSERT_EQ(Option<int>{17}, Option<float>{17.0f});

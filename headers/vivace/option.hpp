@@ -15,7 +15,7 @@
 #ifndef VCE_OPTION_HPP
 #define VCE_OPTION_HPP
 
-#include <vivace/utility.hpp>
+#include <vivace/result.hpp>
 
 namespace vce {
 
@@ -213,6 +213,28 @@ public:
             return std::invoke(f, unsafe_unwrap());
         } else {
             return {};
+        }
+    }
+
+    /// Returns a result containing the value in this option or a result containing the supplied
+    /// error if this option is empty.
+    template <class E>
+    Result<T, E> ok_or(E error) {
+        if (some) {
+            return {OK, unsafe_unwrap()};
+        } else {
+            return {ERR, std::move(error)};
+        }
+    }
+
+    /// Returns a result containing the value in this option or a result containing the result of
+    /// invoking the supplied function if this option is empty.
+    template <class F>
+    auto ok_or_else(F f) -> Result<T, decltype(std::invoke(f))> {
+        if (some) {
+            return {OK, unsafe_unwrap()};
+        } else {
+            return {ERR, std::invoke(f)};
         }
     }
 

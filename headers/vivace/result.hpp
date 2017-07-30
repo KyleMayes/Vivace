@@ -31,13 +31,16 @@ struct Err { };
 /// The only value of the err type.
 static constexpr Err ERR{};
 
+template <class T>
+class Option;
+
 /// A type that may contain either a value or an error.
 template <class T, class E>
 class Result {
     template <class U, class F>
     friend class Result;
 
-    bool ok;
+    bool ok_;
     std::aligned_union_t<0, T, E> either;
 
 public:
@@ -51,58 +54,58 @@ public:
 
     /// Constructs a result containing the supplied value.
     template <class U>
-    Result(Ok, U&& value) : ok{true} {
+    Result(Ok, U&& value) : ok_{true} {
         new(&either) T(std::forward<U>(value));
     }
 
     /// Constructs a result containing a value constructed from the supplied arguments.
     template <class... N>
-    Result(Ok, std::in_place_t, N&&... arguments) : ok{true} {
+    Result(Ok, std::in_place_t, N&&... arguments) : ok_{true} {
         new(&either) T(std::forward<N>(arguments)...);
     }
 
     /// Constructs a result containing a value constructed from the supplied arguments.
     template <class U, class... N>
-    Result(Ok, std::in_place_t, std::initializer_list<U> list, N&&... arguments) : ok{true} {
+    Result(Ok, std::in_place_t, std::initializer_list<U> list, N&&... arguments) : ok_{true} {
         new(&either) T(list, std::forward<N>(arguments)...);
     }
 
     /// Constructs a result containing the supplied error.
     template <class U>
-    Result(Err, U&& error) : ok{false} {
+    Result(Err, U&& error) : ok_{false} {
         new(&either) E(std::forward<U>(error));
     }
 
     /// Constructs a result containing an error constructed from the supplied arguments.
     template <class... N>
-    Result(Err, std::in_place_t, N&&... arguments) : ok{false} {
+    Result(Err, std::in_place_t, N&&... arguments) : ok_{false} {
         new(&either) E(std::forward<N>(arguments)...);
     }
 
     /// Constructs a result containing an error constructed from the supplied arguments.
     template <class U, class... N>
-    Result(Err, std::in_place_t, std::initializer_list<U> list, N&&... arguments) : ok{false} {
+    Result(Err, std::in_place_t, std::initializer_list<U> list, N&&... arguments) : ok_{false} {
         new(&either) E(list, std::forward<N>(arguments)...);
     }
 
-    Result(const Result& other) : ok{other.ok} {
+    Result(const Result& other) : ok_{other.ok_} {
         copy(other);
     }
 
     Result& operator=(const Result& other) {
         destroy();
-        ok = other.ok;
+        ok_ = other.ok_;
         copy(other);
         return *this;
     }
 
-    Result(Result&& other) : ok{other.ok} {
+    Result(Result&& other) : ok_{other.ok_} {
         move(std::move(other));
     }
 
     Result& operator=(Result&& other) {
         destroy();
-        ok = other.ok;
+        ok_ = other.ok_;
         move(std::move(other));
         return *this;
     }
@@ -113,7 +116,7 @@ public:
 
     /// Returns whether this result contains a value.
     bool is_ok() const {
-        return ok;
+        return ok_;
     }
 
     /// Returns whether this result contains an error.
@@ -123,7 +126,7 @@ public:
 
     /// Returns a reference to the value or error in this result.
     Result<Ref<T>, Ref<E>> as_ref() {
-        if (ok) {
+        if (ok_) {
             return {OK, std::ref(unsafe_get())};
         } else {
             return {ERR, std::ref(unsafe_get_err())};
@@ -132,7 +135,7 @@ public:
 
     /// Returns a reference to the value or error in this result.
     Result<Ref<const T>, Ref<const E>> as_ref() const {
-        if (ok) {
+        if (ok_) {
             return {OK, std::cref(unsafe_get())};
         } else {
             return {ERR, std::cref(unsafe_get_err())};
@@ -141,7 +144,7 @@ public:
 
     /// Returns the value in this result or throws an exception if this result contains an error.
     T unwrap() {
-        if (ok) {
+        if (ok_) {
             return unsafe_unwrap();
         } else {
             throw std::logic_error{"attempted to unwrap the value in a result containing an error"};
@@ -150,7 +153,7 @@ public:
 
     /// Returns the error in this result or throws an exception if this result contains a value.
     E unwrap_err() {
-        if (!ok) {
+        if (!ok_) {
             return unsafe_unwrap_err();
         } else {
             throw std::logic_error{"attempted to unwrap the error in a result containing a value"};
@@ -159,7 +162,7 @@ public:
 
     /// Returns the value in this result or the supplied value if this result contains an error.
     T unwrap_or(T value) {
-        if (ok) {
+        if (ok_) {
             return unsafe_unwrap();
         } else {
             return value;
@@ -170,7 +173,7 @@ public:
     /// result contains an error.
     template <class F>
     T unwrap_or_else(F f) {
-        if (ok) {
+        if (ok_) {
             return unsafe_unwrap();
         } else {
             return std::invoke(f);
@@ -181,7 +184,7 @@ public:
     /// possible.
     template <class F>
     auto map(F f) -> Result<decltype(std::invoke(f, unwrap())), E> {
-        if (ok) {
+        if (ok_) {
             return {OK, std::invoke(f, unsafe_unwrap())};
         } else {
             return {ERR, unsafe_unwrap_err()};
@@ -192,7 +195,7 @@ public:
     /// possible.
     template <class F>
     auto map_err(F f) -> Result<T, decltype(std::invoke(f, unwrap_err()))> {
-        if (!ok) {
+        if (!ok_) {
             return {ERR, std::invoke(f, unsafe_unwrap_err())};
         } else {
             return {OK, unsafe_unwrap()};
@@ -203,7 +206,7 @@ public:
     /// supplied value if this result contains an error.
     template <class U, class F>
     U map_or(U value, F f) {
-        if (ok) {
+        if (ok_) {
             return std::invoke(f, unsafe_unwrap());
         } else {
             return value;
@@ -214,7 +217,7 @@ public:
     /// the result of invoking the first supplied function if this result contains an error.
     template <class G, class F>
     auto map_or_else(G g, F f)-> decltype(std::invoke(g)) {
-        if (ok) {
+        if (ok_) {
             return std::invoke(f, unsafe_unwrap());
         } else {
             return std::invoke(g);
@@ -225,28 +228,48 @@ public:
     /// possible.
     template <class F>
     auto and_then(F f) -> Result<typename decltype(std::invoke(f, unwrap()))::ok_t, E> {
-        if (ok) {
+        if (ok_) {
             return std::invoke(f, unsafe_unwrap());
         } else {
             return {ERR, unsafe_unwrap_err()};
         }
     }
 
+    /// Returns an option containing the value in this result or an empty option if this result
+    /// contains an error.
+    Option<T> ok() {
+        if (ok_) {
+            return {unsafe_unwrap()};
+        } else {
+            return {};
+        }
+    }
+
+    /// Returns an option containing the error in this result or an empty option if this result
+    /// contains a value.
+    Option<E> err() {
+        if (!ok_) {
+            return {unsafe_unwrap_err()};
+        } else {
+            return {};
+        }
+    }
+
     /// Returns the ordering of this result and the supplied result.
     template <typename U, typename F>
     Ordering compare(const Result<U, F>& other) const {
-        if (ok && other.ok) {
+        if (ok_ && other.ok_) {
             return vce::compare(unsafe_get(), other.unsafe_get());
-        } else if (!ok && !other.ok) {
+        } else if (!ok_ && !other.ok_) {
             return vce::compare(unsafe_get_err(), other.unsafe_get_err());
         } else {
-            return vce::compare(other.ok, ok);
+            return vce::compare(other.ok_, ok_);
         }
     }
 
     /// Returns the hash code for this result.
     size_t hash() const {
-        if (ok) {
+        if (ok_) {
             return std::hash<T>{}(unsafe_get());
         } else {
             auto code = std::hash<E>{}(unsafe_get_err());
@@ -257,8 +280,8 @@ public:
 
     template <class U, class F>
     friend bool operator==(const Result& left, const Result<U, F>& right) {
-        if (left.ok == right.ok) {
-            if (left.ok) {
+        if (left.ok_ == right.ok_) {
+            if (left.ok_) {
                 return left.unsafe_get() == right.unsafe_get();
             } else {
                 return left.unsafe_get_err() == right.unsafe_get_err();
@@ -294,7 +317,7 @@ public:
     }
 
     friend std::ostream& operator<<(std::ostream& stream, const Result& result) {
-        if (result.ok) {
+        if (result.ok_) {
             return stream << "Ok(" << result.unsafe_get() << ")";
         } else {
             return stream << "Err(" << result.unsafe_get_err() << ")";
@@ -327,7 +350,7 @@ private:
     }
 
     void copy(const Result& other) {
-        if (ok) {
+        if (ok_) {
             new(&either) T(other.unsafe_get());
         } else {
             new(&either) E(other.unsafe_get_err());
@@ -335,7 +358,7 @@ private:
     }
 
     void move(Result&& other) {
-        if (ok) {
+        if (ok_) {
             new(&either) T(other.unsafe_unwrap());
         } else {
             new(&either) E(other.unsafe_unwrap_err());
@@ -343,7 +366,7 @@ private:
     }
 
     void destroy() {
-        if (ok) {
+        if (ok_) {
             unsafe_unwrap();
         } else {
             unsafe_unwrap_err();

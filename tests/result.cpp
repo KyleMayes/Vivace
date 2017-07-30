@@ -16,7 +16,7 @@
 
 ACCEL_TESTS
 
-#include <vivace/result.hpp>
+#include <vivace/option.hpp>
 
 using namespace vce;
 
@@ -193,6 +193,16 @@ TEST(AndThen) {
 
     Result<UP, UP> b{ERR, make(322)};
     ASSERT_THROW(b.and_then([](auto i) { return Result<UP, UP>{OK, std::move(i)}; }).unwrap());
+}
+
+TEST(Convert) {
+    Result<UP, UP> a{OK, make(322)};
+    ASSERT_EQ(*a.ok().unwrap(), 322);
+    ASSERT_THROW(a.err().unwrap());
+
+    Result<UP, UP> b{ERR, make(322)};
+    ASSERT_EQ(*b.err().unwrap(), 322);
+    ASSERT_THROW(b.ok().unwrap());
 }
 
 TEST(Compare) {
