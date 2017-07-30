@@ -16,6 +16,7 @@ endif
 
 headers = [include_directories('headers')]
 sources = [
+    'sources/iterator.cpp',
     'sources/utility.cpp',
 ]
 
@@ -48,6 +49,7 @@ endif
 # Tests
 
 tests = [
+    'iterator',
     'math',
     'meta',
     'option',
