@@ -15,6 +15,7 @@
 #ifndef VCE_UTILITY_HPP
 #define VCE_UTILITY_HPP
 
+#include <functional>
 #include <limits>
 #include <ostream>
 
