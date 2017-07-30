@@ -48,6 +48,7 @@ endif
 # Tests
 
 tests = [
+    'math',
     'meta',
     'option',
     'result',
